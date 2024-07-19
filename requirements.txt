@@ -7,3 +7,4 @@ chromadb
 streamlit
 python-dotenv
 python-environ
+bs4==0.0.2

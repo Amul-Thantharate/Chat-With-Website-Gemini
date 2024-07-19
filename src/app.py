@@ -10,6 +10,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_google_genai import GoogleGenerativeAI, GoogleGenerativeAIEmbeddings
+import os
 
 
 load_dotenv()
@@ -29,14 +30,14 @@ def get_vectorstore_from_url(url):
     return vector_store
 
 def get_context_retriever_chain(vector_store):
-    llm = GoogleGenerativeAI(model="gemini-1.5-flash", google_api_key="AIzaSyB68nFWXicYbeGGAj7Lca90HvARW_1_wVQ")
+    llm = GoogleGenerativeAI(model="gemini-1.5-flash", google_api_key=os.getenv("API_KEY"))
     
     retriever = vector_store.as_retriever()
     
     prompt = ChatPromptTemplate.from_messages([
-      MessagesPlaceholder(variable_name="chat_history"),
-      ("user", "{input}"),
-      ("user", "Given the above conversation, generate a search query to look up in order to get information relevant to the conversation")
+        MessagesPlaceholder(variable_name="chat_history"),
+        ("user", "{input}"),
+        ("user", "Given the above conversation, generate a search query to look up in order to get information relevant to the conversation")
     ])
     
     retriever_chain = create_history_aware_retriever(llm, retriever, prompt)
@@ -45,12 +46,12 @@ def get_context_retriever_chain(vector_store):
     
 def get_conversational_rag_chain(retriever_chain): 
     
-    llm = GoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.1, max_output_tokens=400, google_api_key="AIzaSyB68nFWXicYbeGGAj7Lca90HvARW_1_wVQ")
+    llm = GoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.1, max_output_tokens=400, google_api_key=os.getenv("API_KEY"))
     
     prompt = ChatPromptTemplate.from_messages([
-      ("system", "Answer the user's questions based on the below context:\n\n{context}"),
-      MessagesPlaceholder(variable_name="chat_history"),
-      ("user", "{input}"),
+        ("system", "Answer the user's questions based on the below context:\n\n{context}"),
+        MessagesPlaceholder(variable_name="chat_history"),
+        ("user", "{input}"),
     ])
     
     stuff_documents_chain = create_stuff_documents_chain(llm,prompt)
